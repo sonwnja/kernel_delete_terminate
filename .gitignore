@@ -30,11 +30,13 @@
 
 # Executables
 *.exe
+*.sys
 *.out
 *.app
 *.i*86
 *.x86_64
 *.hex
+*.cer
 
 # Debug files
 *.dSYM/
@@ -50,3 +52,7 @@ modules.order
 Module.symvers
 Mkfile.old
 dkms.conf
+Debug/
+Release/
+x64/
+*.ipch

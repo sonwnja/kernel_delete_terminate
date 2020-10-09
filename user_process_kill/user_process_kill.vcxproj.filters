@@ -1,0 +1,117 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="Source Files">
+      <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
+    <Filter Include="Header Files">
+      <UniqueIdentifier>{93995380-89BD-4b04-88EB-625FBE52EBFB}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="ci-hunter">
+      <UniqueIdentifier>{c424b890-6b71-494a-bd8b-c0132757a0af}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="ci-hunter\minirtl">
+      <UniqueIdentifier>{ca66f988-8468-4c23-bb40-87e17a7bdbbd}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="user_process_kill.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\instdrv.c">
+      <Filter>ci-hunter</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\ldasm.c">
+      <Filter>ci-hunter</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\main.c">
+      <Filter>ci-hunter</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\sup.c">
+      <Filter>ci-hunter</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strcat.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strcmp.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strcmpi.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strcpy.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strend.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strlen.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strncmp.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strncmpi.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\_strncpy.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\strtoi.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\strtoi64.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\strtou64.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\u64tohex.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+    <ClCompile Include="ci-hunter\minirtl\ultostr.c">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="ci-hunter\global.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\instdrv.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\ldasm.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\ntos.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\sup.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\vbox.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\vboxdrv.h">
+      <Filter>ci-hunter</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\minirtl\minirtl.h">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClInclude>
+    <ClInclude Include="ci-hunter\minirtl\rtltypes.h">
+      <Filter>ci-hunter\minirtl</Filter>
+    </ClInclude>
+    <ClInclude Include="resource.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="user_process_kill.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="kernel_process_kill_x64.sys" />
+    <None Include="kernel_process_kill_x86.sys" />
+  </ItemGroup>
+</Project>
