@@ -55,4 +55,4 @@ dkms.conf
 Debug/
 Release/
 x64/
-*.ipch
+/.vs
