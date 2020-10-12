@@ -110,8 +110,4 @@
   <ItemGroup>
     <ResourceCompile Include="user_process_kill.rc" />
   </ItemGroup>
-  <ItemGroup>
-    <None Include="kernel_process_kill_x64.sys" />
-    <None Include="kernel_process_kill_x86.sys" />
-  </ItemGroup>
 </Project>

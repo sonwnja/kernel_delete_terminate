@@ -44,16 +44,6 @@ END
 
 #endif    // APSTUDIO_INVOKED
 
-
-/////////////////////////////////////////////////////////////////////////////
-//
-// PE
-//
-
-IDR_PE1                 PE                      "kernel_process_kill_x86.sys"
-
-IDR_PE2                 PE                      "kernel_process_kill_x64.sys"
-
 #endif    // Chinese (Simplified, PRC) resources
 /////////////////////////////////////////////////////////////////////////////
 

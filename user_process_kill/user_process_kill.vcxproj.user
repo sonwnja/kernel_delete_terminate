@@ -1,4 +1,10 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="Current" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
-  <PropertyGroup />
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
+    <RemoteDebuggerServerName>WIN-MDS7K3KBNSR:4024</RemoteDebuggerServerName>
+    <DebuggerFlavor>WindowsRemoteDebugger</DebuggerFlavor>
+    <RemoteDebuggerCommand>C:\Users\weixingyu\Desktop\user_process_kill.exe</RemoteDebuggerCommand>
+    <RemoteDebuggerWorkingDirectory>C:\Users\weixingyu\Desktop\</RemoteDebuggerWorkingDirectory>
+    <RemoteDebuggerConnection>RemoteWithoutAuthentication</RemoteDebuggerConnection>
+  </PropertyGroup>
 </Project>

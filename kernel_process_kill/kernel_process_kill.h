@@ -16,10 +16,9 @@ typedef struct _DEVICE_EXTENSION
 #define DEVICE_NAME	L"\\Device\\ProcessTerminateDevice"
 #define SYM_LINK_NAME L"\\??\\ProcessTerminateDevice"
 
-VOID Unload(IN PDRIVER_OBJECT pDriverObject);			// 卸载例程
-NTSTATUS CreateDevice(IN PDRIVER_OBJECT pDriverObject);	// 封装设备创建函数
+VOID Unload(IN PDRIVER_OBJECT pDriverObject);						// 卸载例程
+NTSTATUS CreateDevice(IN PDRIVER_OBJECT pDriverObject);				// 封装设备创建函数
 NTSTATUS DispatchRoutin(IN PDEVICE_OBJECT pDevObj, IN PIRP pIrp);	// 通用派遣函数
 NTSTATUS DeviceIOControl(IN PDEVICE_OBJECT pDevObj, IN PIRP pIrp);	// IO控制函数（与ring3通信）
-NTSTATUS TerminateProcess(IN ULONG ProcessID);			// 进程结束函数
-NTSTATUS DeleteFile(IN wchar_t* path);					// 文件删除函数
-NTSTATUS WipeFile(IN wchar_t* path);					// 文件擦除函数 
+NTSTATUS TerminateProcess(IN ULONG ProcessID);						// 进程结束函数
+NTSTATUS WipeFile(IN wchar_t* path);								// 文件擦除函数 

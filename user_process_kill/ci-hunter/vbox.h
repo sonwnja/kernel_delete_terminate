@@ -177,7 +177,7 @@ typedef struct _SUPLDRLOAD
 #define SUPREQHDR_FLAGS_MAGIC                           UINT32_C(0x42000042)
 /** The default value. Use this when no special stuff is requested. */
 #define SUPREQHDR_FLAGS_DEFAULT                         SUPREQHDR_FLAGS_MAGIC
-#define VERR_INTERNAL_ERROR                 (-225)
+#define VERR_INTERNAL_End                 (-225)
 #define SUPCOOKIE_MAGIC                                 "The Magic Word!"
 #define SUPDRV_IOC_VERSION                              0x001a0007
 /** The request size. */

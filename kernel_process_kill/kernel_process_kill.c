@@ -124,7 +124,7 @@ NTSTATUS DispatchRoutin(IN PDEVICE_OBJECT pDevObj, IN PIRP pIrp)
 	NTSTATUS status = STATUS_SUCCESS;
 	// 完成IRP
 	pIrp->IoStatus.Status = status;
-	pIrp->IoStatus.Information = 0;	// bytes xfered
+	pIrp->IoStatus.Information = 0;	
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 
 	KdPrint(("[*]leave DispatchRoutin\n"));
@@ -160,22 +160,6 @@ NTSTATUS DeviceIOControl(IN PDEVICE_OBJECT pDevObj, IN PIRP pIrp)
 		}
 		break;
 	}
-	case DELETE_FILE:
-	{
-		WCHAR* FilePath = ExAllocatePoolWithTag(NonPagedPool, Input_Lenght, "HTAP");
-		RtlCopyMemory(FilePath, pIrp->AssociatedIrp.SystemBuffer, Input_Lenght);
-		KdPrint(("[*]recv ControlCode DELETE_FILE %S\n", FilePath));
-		Status = DeleteFile(FilePath); 		
-		if (NT_SUCCESS(Status)) {
-			KdPrint(("[*]success in DeleteFile"));
-			RtlInitUnicodeString(&return_str, L"DELETE SUCCESS");
-		}
-		else {
-			KdPrint(("[!]success in DeleteFile with code 0x%X", Status));
-			RtlInitUnicodeString(&return_str, L"DELETE ERROR");
-		}
-		break;
-	}	
 	case WIPE_FILE:
 	{
 		WCHAR* FilePath = ExAllocatePoolWithTag(NonPagedPool, Input_Lenght, "HTAP");
@@ -202,7 +186,7 @@ NTSTATUS DeviceIOControl(IN PDEVICE_OBJECT pDevObj, IN PIRP pIrp)
 	pIrp->IoStatus.Information = return_str.MaximumLength;
 	IoCompleteRequest(pIrp, IO_NO_INCREMENT);
 
-	KdPrint(("[*]leave DeviceIOControl\n"));
+	KdPrint(("[*]leave DeviceIOControl"));
 
 	return Status;
 }
@@ -238,82 +222,6 @@ NTSTATUS TerminateProcess(IN ULONG ProcessID) {
 	return Status;
 }
 
-NTSTATUS DeleteFile(IN wchar_t* path) {
-	HANDLE fileHandle;
-	NTSTATUS Status;
-	IO_STATUS_BLOCK ioBlock;
-	DEVICE_OBJECT* device_object = NULL;
-	void* object = NULL;
-	OBJECT_ATTRIBUTES fileObject;
-	UNICODE_STRING uPath;
-	PEPROCESS eproc = PsGetCurrentProcess();
-	KeAttachProcess(eproc);
-	RtlInitUnicodeString(&uPath, path);
-	if (KeGetCurrentIrql() != PASSIVE_LEVEL)
-	{
-		KdPrint(("[!]IRQL levels too high\r\n"));
-		return STATUS_INVALID_DEVICE_STATE;
-	}
-	InitializeObjectAttributes(&fileObject,
-		&uPath,
-		OBJ_CASE_INSENSITIVE,
-		NULL,
-		NULL);
-
-	Status = IoCreateFileSpecifyDeviceObjectHint(
-		&fileHandle,
-		SYNCHRONIZE | FILE_WRITE_ATTRIBUTES | FILE_READ_ATTRIBUTES | FILE_READ_DATA, 
-		&fileObject,
-		&ioBlock,
-		NULL,
-		FILE_ATTRIBUTE_NORMAL,
-		FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,		
-		FILE_OPEN,
-		FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,		
-		0,
-		0,
-		CreateFileTypeNone,
-		0,
-		IO_IGNORE_SHARE_ACCESS_CHECK,
-		device_object);
-
-	if (Status != STATUS_SUCCESS)
-	{
-		KdPrint(("[!]error in IoCreateFileSpecifyDeviceObjectHint with 0x%X", Status));
-		goto _Error;
-	}
-
-	Status = ObReferenceObjectByHandle(fileHandle, 0, 0, 0, &object, 0);
-
-	if (Status != STATUS_SUCCESS)
-	{
-		KdPrint(("[*]success in ObReferenceObjectByHandle"));
-		ZwClose(fileHandle);
-		goto _Error;
-	}
-
-	((FILE_OBJECT*)object)->SectionObjectPointer->ImageSectionObject = 0;
-	((FILE_OBJECT*)object)->DeleteAccess = 1;
-	((FILE_OBJECT*)object)->WriteAccess = 1;
-	Status = ZwDeleteFile(&fileObject);
-	ObDereferenceObject(object);
-	ZwClose(fileHandle);
-
-	if (Status != STATUS_SUCCESS)
-	{
-		KdPrint(("[!]error in ZwWriteFile with 0x%X", Status));
-		goto _Error;
-	}
-	if (NT_SUCCESS(Status))
-	{
-		KeDetachProcess();
-		return Status;
-	}
-_Error:
-	KeDetachProcess();
-	return Status;
-}
-
 NTSTATUS WipeFile(IN wchar_t* path) {
 	IO_STATUS_BLOCK ioStatusBlock;
 	HANDLE fileHandle;
@@ -325,6 +233,7 @@ NTSTATUS WipeFile(IN wchar_t* path) {
 	UNICODE_STRING uPath;
 	size_t  cb;
 	PUCHAR buffer;
+	BOOLEAN hasWriteAccess = TRUE;
 	PEPROCESS eproc = PsGetCurrentProcess();
 	int fileLength = 0;
 	KeAttachProcess(eproc);
@@ -360,10 +269,34 @@ NTSTATUS WipeFile(IN wchar_t* path) {
 		device_object);
 	if (Status != STATUS_SUCCESS)
 	{
-		KdPrint(("[!]error in IoCreateFileSpecifyDeviceObjectHint with 0x%X", Status));
-		goto _End;
+		KdPrint(("[!]error in IoCreateFileSpecifyDeviceObjectHint with GENERIC_ALL with 0x%X", Status));
+		Status = IoCreateFileSpecifyDeviceObjectHint(
+			&fileHandle,
+			SYNCHRONIZE | FILE_WRITE_ATTRIBUTES | FILE_READ_ATTRIBUTES | FILE_READ_DATA,
+			&fileObject,
+			&ioBlock,
+			NULL,
+			FILE_ATTRIBUTE_NORMAL,
+			FILE_SHARE_READ | FILE_SHARE_WRITE | FILE_SHARE_DELETE,
+			FILE_OPEN,
+			FILE_NON_DIRECTORY_FILE | FILE_SYNCHRONOUS_IO_NONALERT,
+			0,
+			0,
+			CreateFileTypeNone,
+			0,
+			IO_IGNORE_SHARE_ACCESS_CHECK,
+			device_object); 
+		if (Status != STATUS_SUCCESS)
+		{
+			KdPrint(("[!]error in IoCreateFileSpecifyDeviceObjectHint with READ_ACCESS with 0x%X", Status));
+			goto _End;
+		}
+		hasWriteAccess = FALSE;
 	}
-
+	if(hasWriteAccess)
+		KdPrint(("[*]success in IoCreateFileSpecifyDeviceObjectHint with WRITE_ACCESS"));
+	else
+		KdPrint(("[*]success in IoCreateFileSpecifyDeviceObjectHint with READ_ACCESS"));
 	Status = ObReferenceObjectByHandle(fileHandle, 0, 0, 0, &object, 0);
 	if (Status != STATUS_SUCCESS)
 	{
@@ -375,36 +308,39 @@ NTSTATUS WipeFile(IN wchar_t* path) {
 	((FILE_OBJECT*)object)->SectionObjectPointer->ImageSectionObject = 0;
 	((FILE_OBJECT*)object)->DeleteAccess = 1;
 	((FILE_OBJECT*)object)->WriteAccess = 1; 
-	Status = ZwQueryInformationFile(fileHandle, &ioStatusBlock, &fsi, sizeof(FILE_STANDARD_INFORMATION), FileStandardInformation);
-	if (!NT_SUCCESS(Status))
+	if (hasWriteAccess)
 	{
-		ZwClose(fileHandle);
-		KdPrint(("[!]error in ZwQueryInformationFile with 0x%X", Status));
-		goto _End;
-	}
-	fileLength = fsi.EndOfFile.QuadPart;
-	buffer = (PUCHAR)ExAllocatePoolWithTag(PagedPool, MAX_FILE_LENGTH, (ULONG)"OREZ");
-	if (buffer == NULL) {
-		KdPrint(("[!]error in ExAllocatePoolWithTag"));
-		goto _End;
-	}
-	RtlZeroMemory(buffer, MAX_FILE_LENGTH);
-	int fileOffset = 0;
-	int i = 0;
-	while (fileOffset < fileLength) {
-		i++;
-		cb = min(MAX_FILE_LENGTH, fileLength - fileOffset);		// 期望写入大小
-		Status = ZwWriteFile(fileHandle, NULL, NULL, NULL, &ioStatusBlock, buffer, cb, fileOffset, NULL);
+		Status = ZwQueryInformationFile(fileHandle, &ioStatusBlock, &fsi, sizeof(FILE_STANDARD_INFORMATION), FileStandardInformation);
 		if (!NT_SUCCESS(Status))
 		{
 			ZwClose(fileHandle);
-			KdPrint(("[!]error in ZwWriteFile with 0x%X", Status));
+			KdPrint(("[!]error in ZwQueryInformationFile with 0x%X", Status));
 			goto _End;
 		}
-		fileOffset += ioStatusBlock.Information;
-		KdPrint(("[*]success in ZwWriteFile with %d bytes and %d times", i, ioStatusBlock.Information));
+		fileLength = fsi.EndOfFile.QuadPart;
+		buffer = (PUCHAR)ExAllocatePoolWithTag(PagedPool, MAX_FILE_LENGTH, (ULONG)"OREZ");
+		if (buffer == NULL) {
+			KdPrint(("[!]error in ExAllocatePoolWithTag"));
+			goto _End;
+		}
+		RtlZeroMemory(buffer, MAX_FILE_LENGTH);
+		int fileOffset = 0;
+		int i = 0;
+		while (fileOffset < fileLength) {
+			i++;
+			cb = min(MAX_FILE_LENGTH, fileLength - fileOffset);		// 期望写入大小
+			Status = ZwWriteFile(fileHandle, NULL, NULL, NULL, &ioStatusBlock, buffer, cb, fileOffset, NULL);
+			if (!NT_SUCCESS(Status))
+			{
+				ZwClose(fileHandle);
+				KdPrint(("[!]error in ZwWriteFile with 0x%X", Status));
+				goto _End;
+			}
+			fileOffset += ioStatusBlock.Information;
+			KdPrint(("[*]success in ZwWriteFile with %d bytes and %d times", i, ioStatusBlock.Information));
+		}
+		KdPrint(("[*]finished in ZwWriteFile"));
 	}
-	KdPrint(("[*]finished in ZwWriteFile"));
 	Status = ZwDeleteFile(&fileObject);
 
 	ObDereferenceObject(object);
